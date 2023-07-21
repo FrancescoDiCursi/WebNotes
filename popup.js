@@ -230,7 +230,19 @@ function update_note_name(old_name, row, context){
     }
 }
 
+function get_current_url(){
+    chrome.tabs.query(
+        {active:true},
+        tabs=>{
+                   const tab=tabs[0];
+                   console.log("URL:", tab.url)
+                   return tab.url
+                   }
+                    )
+}
+
 function open_text_editor(row, edit_btn, name){
+
     console.log("ID", row.id)
     //reset edit_colors
     let all_edit_btns=document.getElementsByClassName("edit_note_btn_active")
@@ -251,28 +263,67 @@ function open_text_editor(row, edit_btn, name){
 
         }
 
-
+         //scroll to bottom in the popup
+         window.scroll(0,window.innerHeight)
+        //change note name in editor
         let note_inp= document.getElementById("editor_note_name_inp")
         note_inp.value= name
+        //add url
+        let url_inp= document.getElementById("editor_url")
+        let get_curr_url= document.getElementById("get_current_url")
+        get_curr_url.addEventListener("click",function(){
+            chrome.tabs.query(
+                {active:true},
+                tabs=>{
+                        const tab=tabs[0];
+                        url_inp.value= tab.url
+                        }
+                )
 
-        //change name in the note list
-        let reload_note_inp= document.getElementById("reload_note_name_inp")
-
-        reload_note_inp.addEventListener("click",function(){
-            console.log("CHANGE ", row.id)
+        })
+           
+       
+        
+        //get text
+        let note_text=document.getElementById("editor_textarea")
+        //load text and url
+        chrome.storage.local.get().then((storage)=>{
             let active_note= document.getElementsByClassName("edit_note_btn_active").item(0).parentElement
-            console.log("ACTIVE NOTE", active_note)
-            let target_row= document.getElementById(row.id)
-            console.log("TARGET ROW", target_row )
-            active_note.getElementsByClassName("note_name").item(0).innerHTML = note_inp.value
+            let target_storage_el= storage.notes.filter(function(f){
+                if(f.row_id===active_note.id){
+                    
+                    console.log("MATCH", f)
+                    if(f.text!==undefined){
+                        note_text.value=f.text
+                    }else{
+                        note_text.value=""
+                    }
 
-            //update also storage
+                    if(f.url!==undefined){
+                        url_inp.value= f.url
+                    }else{
+                        url_inp.value=""
+                    }
+                    return f
+                }
+            })
+            console.log("TARGET", target_storage_el)
+
+        })
+
+        //save note
+        let save_note_btn= document.getElementById("editor_save")
+        save_note_btn.addEventListener("click", function(){
+            // modify text and url
             chrome.storage.local.get().then((storage)=>{
+                let active_note= document.getElementsByClassName("edit_note_btn_active").item(0).parentElement
                 console.log(storage)
                 let new_notes=storage.notes.map(function (f,k){
                     console.log(f, note_inp.value, row)
                     if (f.row_id===active_note.id){
                         console.log(f.row_id, active_note.id)
+                        f.url=url_inp.value
+                        f.text= note_text.value
                         f.name= note_inp.value
                         return f
                     } else{
@@ -283,55 +334,11 @@ function open_text_editor(row, edit_btn, name){
                 console.log("INSIDE")
                 //set
                 chrome.storage.local.set({"notes":new_notes})
+                active_note.getElementsByClassName("note_name").item(0).innerHTML = note_inp.value
+
                 console.log(storage)
                 
             })
-
-
-            /*
-            let note_list= document.getElementById("absolute_notes_cont").getElementsByClassName("note_row")
-            for(let i=0;i<note_list.length;i++){
-                if (note_list.item(i).id === row.id){
-                    console.log(note_inp.value, note_list.item(i))
-                    let list_entries=note_list.item(i).childNodes
-                    console.log("LIST", list_entries)
-                    for (let j=0;j<list_entries.length;j++){
-                        if (list_entries.item(j).className==="note_name" && note_list.item(i).id=== row.id){
-                            console.log("j", list_entries[j],note_list.item(i).id, row.id)
-                            //change name in note list
-                            list_entries.item(j).innerHTML= note_inp.value
-
-                            //update also storage
-                            chrome.storage.local.get().then((storage)=>{
-                                console.log(storage)
-                                let new_notes=storage.notes.map(function (f,k){
-                                    console.log(f, note_inp.value, row)
-                                    if (f.name === name && f.row_id===row.id){
-                                      f.name= note_inp.value
-                                      return f
-                                    } else{
-                                      return f
-                                    }
-
-                                })
-                                console.log("INSIDE")
-                                //set
-                                chrome.storage.local.set({"notes":new_notes})
-                                console.log(storage)
-                                
-
-                            })
-                            
-                            
-
-
-                        }
-                    }
-
-
-                    
-                }
-            } */
         })
 
 

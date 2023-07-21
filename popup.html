@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type="module" src="popup.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div id="main">
+        <div id="note_metadata">
+            asd
+        </div>
+        <section id="absolute">
+            <div class="main_btn_cont">
+                <button class="main_btn" id="absolute_btn">Absolute</button>
+            </div>
+            <div class="main_sub" id="absolute_sub">
+                <button class="create_note" id="create_note_absolute">+</button>
+                <div class="notes_cont" id="absolute_notes_cont"></div>
+            </div>
+        </section>
+        
+        <section id="relative">
+            <div class="main_btn_cont">
+                <button class="main_btn" id="relative_btn">Contextual</button>
+            </div>
+            <div class="main_sub" id="relative_sub">
+                <button class="create_note" id="create_note_absolute">+</button>
+                <p>asd</p>
+                <div class="notes_cont" id="absolute_notes_cont">
+                </div>
+
+            </div>
+        </section>
+        <div id="note_editor_cont">
+            <div id="note_editor_header">
+                <div id="editor_note_name_cont"><input id="editor_note_name_inp" placeholder="Note name"/></div>
+                <div id="reload_note_name_cont"><button id="reload_note_name_inp">&#8635</button></div>
+                <button id="close_note_editor">&#x2715</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<style type="text/css">
+    #main{
+        width: 500px;
+        text-align: center;
+    }
+
+    section{
+        border: black solid 1px;
+        padding: 1%;
+        transition: 0.5s ease-out;
+
+    }
+
+
+    .main_sub{
+        height: 0%;
+        display: none;
+        transition: 1.5s ease-in;
+
+
+    }
+
+    .notes_cont{
+        max-height: 300px;
+        overflow: scroll;
+    }
+
+    .main_sub_active{
+        height: 100%;
+        display: block;
+        transition: 0.5s ease-out;
+    }
+
+    .main_btn{
+        width: 100%;
+        transition: 1s ease-in;
+    }
+
+    .main_btn_active{
+        background-color: rgba(255,0,0,0.5);
+        width: 100%;
+        transition: 1s ease-out;
+    }
+
+    .create_note{
+        border: transparent;
+        margin-top: 1%;
+        border-radius: 50%;
+        width: 8%;
+        height: 35px;
+        background-color: rgba(0,255,0,0.5);
+        transition: 1s ease-in;
+        font-size: 25px;
+    }
+
+    .create_note_active{
+        margin-top:1%;
+        border-radius: 50%;
+        width: 8%;
+        height: 35px;
+        background-color: rgba(0,255,0,0.5);
+        border: transparent;
+        box-shadow:0px 0px 15px 10px rgba(0,255,0,0.6);
+        font-size: 25px;
+
+        transition: 1s ease-out;
+
+    }
+
+    .note_row{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .note_name{
+        width: 100%;
+        text-align: left;
+        margin-left: 5%;
+    }
+    .del_note_btn{
+        width: 10%;
+        height: 50%;
+        margin-top: 2%;
+        margin-right: 1%;
+        background-color: transparent;
+        border: transparent;
+        color: black;
+        font-size: 22px;
+        margin-bottom: 1%;
+    }
+
+    .bullet_{
+        margin-top: 0.5%;
+        font-size: 25px;
+    }
+
+    #note_metadata{
+        display: none;
+        height: 0px;
+        transition: 0.5s ease-out;
+    }
+
+    #note_metadata_active{
+        display: block;
+        position: absolute;
+        z-index: 1000;
+        background-color: rgba(255,255,255,0.95);
+        border: black 1px solid;
+        width: 75%;
+        height:110px;
+        margin-left: 12%;
+        text-align: center;
+        transition: 0.5s ease-in;
+
+
+    }
+
+    #metadata_cont{
+        position: relative;
+        width: 100%;
+        height: 100%;
+        text-align: left;
+        padding: 2%;
+    }
+
+    #note_editor_cont{
+        width: 100%;
+        display: none;
+        height: 0px;
+    }
+
+    #note_editor_cont_active{
+        display: block;
+        width: 100%;
+        height: 100px;
+    }
+
+    #close_note_editor{
+        background-color: rgba(255,0,0,0.5);
+
+    }
+
+    #note_editor_header{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+    }
+
+    #editor_note_name_cont{
+        width: 100%;
+    }
+    
+    #reload_note_name_cont{
+        width: 10%;
+        margin-left: -34%;
+        margin-right: 20%;
+    }
+
+    #close_node_editor{
+        width: 10%;
+        margin-left: 50%;
+    }
+
+
+    .edit_note_btn{
+        width: 8%;
+        height: 35px;
+        background-color:transparent;
+        border: transparent;
+        border-radius: 50%;
+        font-size: 22px;
+        margin-top: 1%;
+        transition: 1.3s ease-out;
+    }
+    .edit_note_btn_active{
+        width: 8%;
+        height: 35px;
+        color:white;
+        background-color: rgba(255,0,0,0.5);
+        border: transparent;
+        border-radius: 50%;
+        font-size: 22px;
+        margin-top: 1%;
+        box-shadow:5px 5px 5px 2px rgba(255,0,0,0.4);
+        transition: 0.5s ease-out;
+        rotate: 45deg;
+        text-align: center;
+    
+
+    }
+</style>

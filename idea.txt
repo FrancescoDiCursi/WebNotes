@@ -1,0 +1,17 @@
+Colours: violet, green, blue
+____
+
+An interactive web note system.
+The user can take notes on sites and they will be saved in local session. 
+Notes are of two types for each site:
+	- A single note for the base URL: e.g, http://www.youtube.com
+	- Several other notes for the site's sections: i.e., https://www.youtube.com/...
+
+___________
+In each section there are:
+	- a button to create a new note,
+	- the created notes along with their metadata
+
+Creating or clicking on a note opens a div with at least a  text area input
+
+

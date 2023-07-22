@@ -8,6 +8,7 @@
 </head>
 <body>
     <div id="main">
+        <button id="reset_local">Reset local storage</button>
         <div id="note_metadata">
             asd
         </div>
@@ -16,6 +17,45 @@
                 <button class="main_btn" id="absolute_btn">Absolute</button>
             </div>
             <div class="main_sub" id="absolute_sub">
+                <div class="filter_toggle_cont">
+                    <button class="filter_toggle">&#x1F50D</button>
+                </div>
+                <div class="filter_cont">
+                    <div class="container" id="name_search_cont">
+                        <label><b>NAME</b>
+                        <div class="searchInput" id="search_name">
+                          <input class="search_inp" id="name_inp" type="text" placeholder="..." value="">
+                          <div class="icon"><i class="fas fa-search"></i></div>
+                        </div></label>
+                      </div>   
+
+                    <div class="container" id="url_search_cont">
+                        <label><b>URL</b>
+                        <div class="searchInput" id="search_url">
+                          <input class="search_inp" id="url_inp" type="text" placeholder="..." value="">
+                          <div class="icon"><i class="fas fa-search"></i></div>
+                        </div></label>
+                      </div>
+
+                      <div class="container" id="tags_search_cont">
+                        <label><b>TAGS</b>
+                        <div class="searchInput" id="search_tags">
+                          <input class="search_inp" id="tags_inp" type="text" placeholder="..." value="">
+                          <div class="icon"><i class="fas fa-search"></i></div>
+                        </div></label>
+                      </div>
+
+                      
+                      <div class="container" id="text_search_cont">
+                        <label><b>TEXT</b>
+                        <div class="searchInput" id="search_text">
+                          <input class="search_inp" id="text_inp" type="text" placeholder="..." value="">
+                          <div class="icon"><i class="fas fa-search"></i></div>
+                        </div></label>
+                      </div>
+                      
+                </div>
+                <hr>
                 <button class="create_note" id="create_note_absolute">+</button>
                 <div class="notes_cont" id="absolute_notes_cont"></div>
             </div>
@@ -25,8 +65,7 @@
             <div class="main_btn_cont">
                 <button class="main_btn" id="relative_btn">Contextual</button>
             </div>
-            <div class="main_sub" id="relative_sub">
-                <button class="create_note" id="create_note_absolute">+</button>
+            <div class="main_sub" id="relative_sub">                        
                 <p>asd</p>
                 <div class="notes_cont" id="absolute_notes_cont">
                 </div>
@@ -42,9 +81,13 @@
                 <div id="editor_note_name_cont">
                     <label><b>Name:</b> <input id="editor_note_name_inp" placeholder="Note name"/> </label>
                 </div>
-                <div id="editor_url_cont">
-                    <label><b>URL:</b> <input id="editor_url" placeholder="URL"/></label>
+                <div id="editor_note_url_cont">
+                    <label><b>URL:</b> <input id="editor_note_url_inp" placeholder="URL"/></label>
                     <button id="get_current_url">Get current URL</button>
+                </div>
+                <div id="editor_note_tags_cont">
+                    <label><b>Tags:</b> <input id="editor_note_tags_inp" placeholder="tag 1, tag 2, tag3, ..."/></label>
+                    <button id="get_tags">Extract tags</button>
                 </div>
             </div>
             <div id="note_editor_body">
@@ -108,8 +151,9 @@
         margin-top: 1%;
         border-radius: 50%;
         width: 8%;
-        height: 35px;
+        height: 36px;
         background-color: rgba(0,255,0,0.5);
+        rotate: 0deg;
         transition: 1s ease-in;
         font-size: 25px;
     }
@@ -118,11 +162,12 @@
         margin-top:1%;
         border-radius: 50%;
         width: 8%;
-        height: 35px;
+        height: 36px;
         background-color: rgba(0,255,0,0.5);
         border: transparent;
-        box-shadow:0px 0px 15px 10px rgba(0,255,0,0.6);
+        box-shadow:0px 0px 15px 8px rgba(0,255,0,0.6);
         font-size: 25px;
+        rotate: 90deg;
 
         transition: 1s ease-out;
 
@@ -213,9 +258,16 @@
         margin-left: 12%;
     }
 
-    #editor_note_name_cont{
+    #editor_note_name_cont, #editor_note_url_cont, #editor_note_tags_cont{
         width: 100%;
         margin-bottom: 1%;
+    }
+
+    #editor_note_url_inp{
+        margin-left: 2%;
+    }
+    #editor_note_tags_inp{
+        margin-left: 1.5%;
     }
     
     #reload_note_name_cont{
@@ -278,6 +330,116 @@
         margin-left: 2%;
     }
 
+
+    .container{
+  max-width: 450px;
+  margin: 1px auto;
+}
+
+.container .searchInput{
+  background: #fff;
+  width: 100%;
+  border-radius: 5px;
+  position: relative;
+  box-shadow: 0px 1px 5px 3px rgba(0,0,0,0.12);
+}
+
+.searchInput input{
+  height: 4%;
+  width: 100%;
+  outline: none;
+  border: none;
+  border-radius: 5px;
+  padding: 0 60px 0 20px;
+  font-size: 18px;
+  box-shadow: 0px 1px 5px rgba(0,0,0,0.1);
+}
+
+.searchInput.active input{
+  border-radius: 5px 5px 0 0;
+}
+
+.searchInput .resultBox{
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.searchInput.active .resultBox{
+  padding: 10px 8px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.resultBox li{
+  list-style: none;
+  padding: 8px 12px;
+  display: none;
+  width: 100%;
+  cursor: default;
+  border-radius: 3px;
+}
+
+.searchInput.active .resultBox li{
+  display: block;
+  width: 100%;
+}
+.resultBox li:hover{
+  background: #efefef;
+}
+
+.searchInput .icon{
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  height: 55px;
+  width: 55px;
+  text-align: center;
+  line-height: 55px;
+  font-size: 20px;
+  color: #644bff;
+  cursor: pointer;
+}
+
+#url_inp, #name_inp, #tags_inp, #text_inp{
+    width: 82% ;
+    text-align: center;
+}
+
+
     
+
+
+.filter_cont{
+    display: none;
+}
+
+.filter_cont_active{
+    display: block;
+}
+
+.filter_toggle{
+    background-color: rgba(0,0,255,0.2);
+    margin-top: 1%;
+    border-radius: 50%;
+    width: 8%;
+    height: 37px;
+    border: transparent;
+    rotate: 0deg;
+    transition: 1s ease-out;
+}
+
+.filter_toggle_active{
+    margin-top: 1%;
+    border-radius: 50%;
+    width: 8%;
+    height: 37px;
+    background-color: rgba(0,0,255,0.5);
+    border: transparent;
+    rotate: 45deg;
+    transition: 1s ease-out;
+}
 
 </style>

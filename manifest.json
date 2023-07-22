@@ -1,6 +1,6 @@
 {
 	"manifest_version" : 3,
-	"name" : "iNotes",
+	"name" : "Chrome notes",
 	"version" : "0.001",
 	"permissions":[
         "webRequest",

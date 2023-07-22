@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded",function (){
     let relative_sub= document.getElementById("relative_sub")
 
     let absolute_notes_cont= document.getElementById("absolute_notes_cont")
+
     let relative_notes_cont= document.getElementById("relative_notes_cont")
 
     let create_note_abs_btn= document.getElementById("create_note_absolute")
@@ -33,6 +34,9 @@ document.addEventListener("DOMContentLoaded",function (){
 
     let filter_toggle= document.getElementsByClassName("filter_toggle")[0]
     let filter_cont= document.getElementsByClassName("filter_cont")[0]
+
+    let sort_btn=document.getElementById("sort_btn")
+    sort_btn.addEventListener("click", ()=>{sort_notes(sort_btn, absolute_notes_cont,create_note_abs_btn, note_metadata)})
 
     // getting all required elements
     const searchUrl_cont = document.querySelector("#search_url");
@@ -93,6 +97,29 @@ document.addEventListener("DOMContentLoaded",function (){
 
 })
 
+function sort_notes(sort_btn, cont, add_btn,note_metadata){
+    //empty list
+    cont.innerHTML=""
+    if(sort_btn.className.includes("_descending")===true){
+        sort_btn.className= sort_btn.className.replace("_descending","")
+
+    }else if(sort_btn.className.includes("_descending")===false){
+        sort_btn.className= sort_btn.className+"_descending"
+    }
+
+     //repopulate
+     chrome.storage.local.get().then((storage)=>{
+        let note_list= storage.notes //local storage stores by default with newer elements at bottom
+        //REVERESED: new at top position
+        console.log("REVERSED LIST", note_list)
+        note_list.map((note)=>{
+          create_note(cont, add_btn, note_metadata, note.context, note.id, note.date, note.name, note.text,false,true)
+        })
+
+    })
+    
+}
+
 function clear_other_search_inp_except(except_id){
     let all_search_inps=document.getElementsByClassName("search_inp")
     console.log("ALL_INPS", all_search_inps)
@@ -108,6 +135,7 @@ function clear_other_search_inp_except(except_id){
 
 
 function input_suggestions(e, storage, type){
+    close_text_editor()
     console.log(e.target.id)
     clear_other_search_inp_except(e.target.id)
     let note_list= storage.notes
@@ -180,18 +208,29 @@ function handle_section(div, btn){
         console.log("open")
         btn.className= btn.className + "_active"
         div.className= div.className + "_active"
+        let note_list= div.getElementsByClassName("notes_cont")[0]
+        console.log(note_list)
+        if(note_list.id==="absolute_notes_cont" && document.getElementById("sort_btn").className.includes("_descending")){
+           note_list.scroll(0, 99999999999999999999999999)
+
+        }
     }
 }
 
 function del_note(row, note_metadata, note_name, note_date, note_context, note_id){
-    note_metadata.innerHTML=""
-    note_metadata.id= note_metadata.id.replace("_active","")
-    row.remove()
-    del_from_local(note_name, note_date, note_context, note_id) 
+    let del_check=confirm(`Do you really want to delete this note?\nNAME: ${note_name.innerHTML}`)
+    if(del_check){
+        note_metadata.innerHTML=""
+        note_metadata.id= note_metadata.id.replace("_active","")
+        del_from_local(note_name, note_date, note_context, note_id) 
+        row.remove()
+        close_text_editor()
+    }
+
     
 }
 
-function create_note(cont, btn, note_metadata, context, note_id="", storage_date="", storage_name="",note_text="",search_mode=false){
+function create_note(cont, btn, note_metadata, context, note_id="", storage_date="", storage_name="",note_text="",search_mode=false, sort_mode=false){
     let id
     if (note_id!==""){
         id= note_id
@@ -200,7 +239,7 @@ function create_note(cont, btn, note_metadata, context, note_id="", storage_date
         id= cont.childNodes.length
     }
     //create
-    if(search_mode===false){
+    if(search_mode===false && sort_mode===false){
         btn.className = btn.className + "_active"
     }
 
@@ -251,17 +290,24 @@ function create_note(cont, btn, note_metadata, context, note_id="", storage_date
     row.appendChild(name)
     row.appendChild(edit_btn)
     row.appendChild(del_btn)
-    cont.appendChild(row)
+
+    let sort_btn= document.getElementById("sort_btn")
+    if(sort_btn.className.includes("_descending")===false){
+        cont.insertBefore(row, cont.firstChild)
+    }else if(sort_btn.className.includes("_descending")===true){
+        cont.appendChild(row)
+        cont.scroll(0, 99999999999999999999999999)
+    }
 
     //save to local except if loaded at the beginning
-    if (search_mode===false){
+    if (search_mode===false & sort_mode===false){
         if (storage_name===""){
             save_to_local(name, date,context, "abs_"+id.toString()) 
         }
     
     }
     
-    if(search_mode===false){
+    if(search_mode===false & sort_mode===false){
     //finish creation
     setTimeout(()=> btn.className = btn.className.replace("_active",""), 1000)
     }
@@ -396,7 +442,12 @@ function open_text_editor(row, edit_btn, name){
         }
 
          //scroll to bottom in the popup
-         window.scroll(0,window.innerHeight)
+         setTimeout(()=>{  window.scrollTo({
+            top: window.innerHeight,
+            behavior:"smooth"
+            })
+         },
+          100)
         //change note name in editor
         let note_inp= document.getElementById("editor_note_name_inp")
         //add url

@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script type="module" src="popup.js"></script>
-    <title>Document</title>
+    <title>Chrome notes</title>
 </head>
 <body>
+    <h2 id="app_title">Chrome notes</h2>
     <div id="main">
         <button id="reset_local">Reset local storage</button>
         <div id="note_metadata">
@@ -56,6 +57,9 @@
                       
                 </div>
                 <hr>
+                <span id="sort_cont">
+                    <button id="sort_btn" class="sort_btn_descending">&#10514</button>
+                </span>
                 <button class="create_note" id="create_note_absolute">+</button>
                 <div class="notes_cont" id="absolute_notes_cont"></div>
             </div>
@@ -231,15 +235,20 @@
     }
 
     #note_editor_cont{
+        margin-top: 2%;
         width: 100%;
         display: none;
         height: 0px;
     }
 
     #note_editor_cont_active{
+        margin-top:2%;
         display: block;
         width: 100%;
-        height: 100px;
+        height: 100%;
+        border: 1px black solid;
+        padding: 0.5%;
+
     }
     #close_note_editor_cont{
         width: 100%;
@@ -442,4 +451,34 @@
     transition: 1s ease-out;
 }
 
+#app_title{
+    text-align: center;
+}
+
+#reset_local{
+    margin-top: 1%;
+    margin-bottom: 1%;
+}
+
+#sort_cont{
+    width: 10%;
+    position: relative;
+    float: left;
+    margin-top: 2%;
+}
+
+#sort_btn{
+    font-size: 15px;
+}
+
+.sort_btn{
+    rotate: 0deg;
+    transition: 1s ease-out;
+}
+
+.sort_btn_descending{
+    rotate: 180deg;
+    transition: 1s ease-out;
+
+}
 </style>

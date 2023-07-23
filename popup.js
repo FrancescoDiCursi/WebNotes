@@ -135,7 +135,11 @@ function clear_other_search_inp_except(except_id){
 
 
 function input_suggestions(e, storage, type){
-    close_text_editor()
+    try{
+        close_text_editor()
+    }catch{
+        console.log("no text editor open")
+    }
     console.log(e.target.id)
     clear_other_search_inp_except(e.target.id)
     let note_list= storage.notes
@@ -208,9 +212,9 @@ function handle_section(div, btn){
         console.log("open")
         btn.className= btn.className + "_active"
         div.className= div.className + "_active"
-        let note_list= div.getElementsByClassName("notes_cont")[0]
+        let note_list= document.getElementById("absolute_notes_cont")
         console.log(note_list)
-        if(note_list.id==="absolute_notes_cont" && document.getElementById("sort_btn").className.includes("_descending")){
+        if(note_list.parentElement.id==="absolute_notes_cont" && document.getElementById("sort_btn").className.includes("_descending")){
            note_list.scroll(0, 99999999999999999999999999)
 
         }

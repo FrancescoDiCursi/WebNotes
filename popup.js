@@ -120,16 +120,29 @@ function sort_notes(sort_btn, cont, add_btn,note_metadata){
     
 }
 
-function clear_other_search_inp_except(except_id){
+function clear_other_search_inp_except(except_id=""){
     let all_search_inps=document.getElementsByClassName("search_inp")
     console.log("ALL_INPS", all_search_inps)
     for(let i=0;i<all_search_inps.length;i++){
         if(all_search_inps.item(i).id!==except_id){
             console.log(except_id, "reset")
-            all_search_inps.item(i).value=""
+            all_search_inps.item(i).value=""            
             console.log(except_id, "resetted", all_search_inps[i].value)
 
         }
+    }
+
+    //if except_id==="" a keyup must be fired in order to update the nodelist
+    if (except_id===""){
+        var ev = document.createEvent('Events');
+        ev.initEvent('keyup', true, true);
+        all_search_inps.item(0).dispatchEvent(ev)
+
+        //open the editor (the keyup on filters closes the editor by design)
+        //let editor_cont = document.getElementById("note_editor_cont")
+        //editor_cont.id="note_editor_cont_active"
+        //or reselect the 
+        
     }
 }
 
@@ -424,7 +437,7 @@ function get_current_url(){
                     )
 }
 
-function open_text_editor(row, edit_btn, name){
+function open_text_editor(row, edit_btn, filter_toggle){
     console.log("ID", row.id)
     //reset edit_colors
     let all_edit_btns=document.getElementsByClassName("edit_note_btn_active")
@@ -529,6 +542,7 @@ function open_text_editor(row, edit_btn, name){
         save_note_btn.addEventListener("click", function(){
             // modify text and url
             chrome.storage.local.get().then((storage)=>{
+
                 let active_note= document.getElementsByClassName("edit_note_btn_active").item(0).parentElement
                 console.log(storage)
                 let new_notes=storage.notes.map(function (f,k){
@@ -546,9 +560,18 @@ function open_text_editor(row, edit_btn, name){
 
                 })
                 console.log("INSIDE")
+
                 //set
                 chrome.storage.local.set({"notes":new_notes})
                 active_note.getElementsByClassName("note_name").item(0).innerHTML = note_inp.value
+
+                //brute way to: reset filters and updating lists in case of filter search
+                //the right way would be to insert in the filter mode a function to change the edit_btn class name, so that it is find after that
+                if (document.getElementById("filter_toggle").className.includes("_active")){
+                    window.close()
+
+                }
+                
 
                 console.log(storage)
                 

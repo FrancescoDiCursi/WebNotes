@@ -31,12 +31,12 @@ if(document.readyState!=="loading"){
         let icon_bases= document.createElement('img')
         icon_bases.id="icon_bases"
         icon_bases.src= chrome.runtime.getURL(icon_path)
-        icon_bases.style.width="70%"
+        icon_bases.style.width="80%"
 
         let icon_urls= document.createElement('img')
         icon_urls.id="icon_bases"
         icon_urls.src= chrome.runtime.getURL(icon_path)
-        icon_urls.style.width="70%"
+        icon_urls.style.width="80%"
 
         let title_popup_toggle=document.createElement("button")
         title_popup_toggle.innerHTML="- Chrome notes -"
@@ -77,7 +77,7 @@ if(document.readyState!=="loading"){
         meta_cont.style.position="fixed"
         meta_cont.style.zIndex="999999999999"
         meta_cont.style.width="200px"
-        meta_cont.style.height="100px"
+        meta_cont.style.height="12%"
         meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
         meta_cont.style.color="black"
         //meta_cont.style.padding="1%"

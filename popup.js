@@ -326,7 +326,7 @@ function create_note(cont, btn, note_metadata, context, note_id="", storage_date
     
     if(search_mode===false & sort_mode===false){
     //finish creation
-    setTimeout(()=> btn.className = btn.className.replace("_active",""), 1000)
+    setTimeout(()=> btn.className = btn.className.replace("_active",""), 500)
     }
 
 

@@ -11,6 +11,12 @@
         "tabs",
         "storage"
     ],
+    "web_accessible_resources": [
+        {
+          "resources": [ "post-it.png" ],
+          "matches": [ "<all_urls>" ]
+        }
+    ],
     "host_permissions":[
         "<all_urls>"
     ],

@@ -32,6 +32,9 @@ if(document.readyState!=="loading"){
         icon_bases.id="icon_bases"
         icon_bases.src= chrome.runtime.getURL(icon_path)
         icon_bases.style.width="80%"
+        if (n_bases>0){
+            //icon_bases.style.boxShadow="1px 1px 1px rgba('255,0,0,1')"
+        }
 
         let icon_urls= document.createElement('img')
         icon_urls.id="icon_bases"
@@ -55,6 +58,7 @@ if(document.readyState!=="loading"){
                 cont.className= cont.className.replace("_active","")
                 cont.style.display="none"
                 meta_cont.style.backgroundColor="rgba(255,255,255,0)"
+                meta_cont.style.height="0%"
 
                 toggle_popup.innerHTML="+ Chrome notes +"
 
@@ -65,6 +69,7 @@ if(document.readyState!=="loading"){
                 meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
 
                 toggle_popup.innerHTML="- Chrome notes -"
+                meta_cont.style.height="12%"
 
             }
 
@@ -77,7 +82,7 @@ if(document.readyState!=="loading"){
         meta_cont.style.position="fixed"
         meta_cont.style.zIndex="999999999999"
         meta_cont.style.width="200px"
-        meta_cont.style.height="12%"
+        meta_cont.style.height="125px"
         meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
         meta_cont.style.color="black"
         //meta_cont.style.padding="1%"
@@ -104,7 +109,7 @@ if(document.readyState!=="loading"){
 
         let label_urls = document.createElement("label")
         label_urls.id="url_label"
-        label_urls.innerHTML="URLS"
+        label_urls.innerHTML="URL"
         label_urls.style.width="70%"
         label_urls.style.textAlign="center"
         label_urls.style.fontSize="15px"
@@ -112,11 +117,10 @@ if(document.readyState!=="loading"){
 
         let label_bases = document.createElement("label")
         label_bases.id="base_label"
-        label_bases.innerHTML="BASES"
+        label_bases.innerHTML="DOMAIN"
         label_bases.style.width="70%"
         label_bases.style.textAlign="center"
         label_bases.style.fontSize="15px"
-
 
         let buttons_cont= document.createElement("div")
         buttons_cont.id="notes_btn_cont"
@@ -131,18 +135,35 @@ if(document.readyState!=="loading"){
         button_urls.style.width="100%"
         button_urls.style.backgroundColor="transparent"
         button_urls.style.border="transparent"
+        button_urls.addEventListener("click",function(){
+            chrome.runtime.sendMessage({"action":"open_popup_urls"},function(response){
+
+              if (!window.chrome.runtime.lastError) {
+                // message processing code goes here
+                console.log("response", response)
+             } else {
+               //alert("You need to open the Chrome notes' popup first by clicking on its icon.\nThen click here again when it's open.")
+             }
+            })
+        })
 
         
 
         let button_urls_counter=document.createElement("div")
         button_urls_counter.innerHTML=`${n_urls}`
         button_urls_counter.style.marginTop="-60%"
+        button_urls_counter.style.marginLeft="17%"
         button_urls_counter.style.color="black"
         button_urls_counter.style.fontSize="25px"
+        button_urls_counter.style.rotate="-9deg"
 
         let button_bases_counter=document.createElement("div")
         button_bases_counter.innerHTML=`${n_bases}`
         button_bases_counter.style.marginTop="-60%"
+        button_bases_counter.style.marginLeft="17%"
+        button_bases_counter.style.rotate="-9deg"
+
+
         button_bases_counter.style.color="black"
         button_bases_counter.style.fontSize="25px"
 

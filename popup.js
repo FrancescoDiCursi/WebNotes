@@ -32,6 +32,8 @@ document.addEventListener("DOMContentLoaded",function (){
         close_text_editor()
     })
 
+
+
     let filter_toggle= document.getElementsByClassName("filter_toggle")[0]
     let filter_cont= document.getElementsByClassName("filter_cont")[0]
 
@@ -50,8 +52,47 @@ document.addEventListener("DOMContentLoaded",function (){
 
     const searchText_cont = document.querySelector("#search_text");
     const input_text = searchText_cont.querySelector("#text_inp");
+    
+    //grab url
+    let filter_url_btn= document.getElementById("url_btn")
+    filter_url_btn.addEventListener("click",function (){
+        chrome.tabs.query(
+            {active:true},
+            tabs=>{
+                       const tab=tabs[0];
+                       console.log("URL:", tab.url)
+                       let curr_url= tab.url
+                       console.log( curr_url)
+                       input_url.value=curr_url
+                       input_url.click()
+                       //update filters by keyup
+                       let event= new KeyboardEvent("keyup",{key:"#"})
+                       input_url.dispatchEvent(event)
 
+                       }
+                        )
 
+       
+    })
+
+    let filter_domain_btn= document.getElementById("domain_btn")
+    filter_domain_btn.addEventListener("click", function (){
+            chrome.tabs.query(
+                {active:true},
+                tabs=>{
+                    const tab=tabs[0];
+                    console.log("URL:", tab.url)
+                    let curr_url= tab.url
+                    let domain= curr_url.match(/(http.+\.\w+)\//)[0]
+                    console.log( curr_url)
+                    input_url.value=domain
+                    input_url.click()
+                    //update filters by keyup
+                    let event= new KeyboardEvent("keyup",{key:""})
+                    input_url.dispatchEvent(event)
+                }
+            )
+    })
 
 
     let first_click=false
@@ -598,5 +639,6 @@ function close_text_editor(){
     note_editor_cont.id= note_editor_cont.id.replace("_active","")
 
 }
+
 
 

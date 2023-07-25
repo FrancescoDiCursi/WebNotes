@@ -36,6 +36,11 @@
                           <input class="search_inp" id="url_inp" type="text" placeholder="..." value="">
                           <div class="icon"><i class="fas fa-search"></i></div>
                         </div></label>
+                        <div id="url_btns_cont">
+                            <button id="domain_btn">Domain</button>
+                            <button id="url_btn">URL</button>
+
+                        </div>
                       </div>
 
                       <div class="container" id="tags_search_cont">
@@ -117,6 +122,10 @@
         padding: 1%;
         transition: 0.5s ease-out;
 
+    }
+
+    #relative{
+        display: none;
     }
 
 
@@ -491,4 +500,14 @@
     transition: 0.5s ease-out;
 
 }
+#url_btns_cont{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+#url_btn,#domain_btn{
+    width: 100%;
+}
+
 </style>

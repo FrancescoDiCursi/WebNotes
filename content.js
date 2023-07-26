@@ -4,11 +4,30 @@ if(document.readyState!=="loading"){
     let curr_url=document.URL
 
     //check if there are notes for this url
-    chrome.storage.local.get((storage)=>{
+    chrome.storage.local.get(async (storage)=>{
         let note_list= storage.notes
-        let urls= note_list.map((d)=>d.url).filter(function(f){return f!==""})
+        let urls
+        try{
+          urls= note_list.map((d)=>d.url).filter(function(f){return f!==""})
+
+        }catch{
+          urls=[]
+        }
         console.log(urls)
-        
+        //get my_colors (create if "my_colors" not in storage keys)
+        if(!Object.keys(storage).includes("my_colors")){
+          let new_storage= storage
+            new_storage.my_colors=[]
+            await chrome.storage.local.set(new_storage)
+        }
+        console.log("STORAGE",storage)
+
+        //get highlights (create if "higlights" not in storage keys)
+        if(!Object.keys(storage).includes("highlights")){
+          let new_storage= storage
+            new_storage.highlights=[]
+            await chrome.storage.local.set(new_storage)
+        }
         //check all url (notes on the precise url)
         if (urls.includes(curr_url)){
             console.log("precise URL in storage: ", curr_url, urls.filter(d=>d===curr_url).length)
@@ -285,6 +304,13 @@ if(document.readyState!=="loading"){
         my_colors_cont.style.minWidth="100%"
         my_colors_cont.style.height="100%"
         my_colors_cont.style.border="1px solid black"
+        //add already existing colors from storage to cont
+        let already_existing_colors= storage.my_colors
+        already_existing_colors.map(d=>{
+          console.log("C: ", d)
+          create_color(storage, color_picker, my_colors_cont, d.color)
+        })
+        
 
         let my_colors_add_btn_cont= document.createElement("div")
         my_colors_add_btn_cont.id="my_colors_add_btn_cont"
@@ -292,51 +318,8 @@ if(document.readyState!=="loading"){
         let my_colors_add_btn= document.createElement("button")
         my_colors_add_btn.id= "my_colors_add_btn"
         my_colors_add_btn.innerHTML="Add to default colors"
-        my_colors_add_btn.addEventListener("click",function(){
-          let new_color_cont= document.createElement("div")
-          //classname converts automatically hex to rgb, ASSIGN THE HEX TO THE CLASSNAME
-          new_color_cont.id="new_color_cont_"+color_picker.value
-          new_color_cont.style.display="flex"
-          new_color_cont.style.flexDirection="row"
-          new_color_cont.style.width="30%"
-          let new_color_rem= document.createElement("button")
-          new_color_rem.innerHTML="X"
-          new_color_rem.style.backgroundColor=color_picker.value
-          new_color_rem.style.borderRadius="50%"
-          new_color_rem.style.height="40%"
-
-          new_color_rem.style.border="transparent"
-          new_color_rem.style.color="grey"
-          new_color_rem.style.fontSize="12px"
-          new_color_rem.style.marginLeft="-1%"
-          new_color_rem.style.marginRight="1%"
-          new_color_rem.style.width="25%"
-          new_color_rem.addEventListener("click",function(e){
-            document.getElementById(e.target.parentElement.id).remove()
-          })
-
-          let new_color= document.createElement("input")
-          new_color.id="new_color_"+color_picker.value
-          new_color.type="color"
-          new_color.value= color_picker.value
-          new_color.style.width="80%"
-          new_color.addEventListener("click", function(e){
-            e.preventDefault()
-            color_picker.value= e.target.value
-          })
-          console.log(my_colors_cont.getElementsByTagName("*"))
-                  
-            for(let i=0;i<my_colors_cont.getElementsByTagName("*").length;i++){
-              if (my_colors_cont.getElementsByTagName("*").item(i).value === new_color.value){
-                return //do not add already existing color
-              }
-            }
-
-            new_color_cont.appendChild(new_color)
-            new_color_cont.appendChild(new_color_rem)
-            
-            my_colors_cont.appendChild(new_color_cont)
-          
+        my_colors_add_btn.addEventListener("click",async function(){
+          create_color(storage, color_picker, my_colors_cont, color_picker.value)
         })
 
       
@@ -376,14 +359,6 @@ if(document.readyState!=="loading"){
             return
           }
           console.log("POST", selection.anchorNode.getElementsByTagName("*").forEach(d=>d.textContent))
-
-
-          //USE SLICE ON LIST OF NODE OF THE SELECTION
-          //insert span (no with innerHTML) at selection
-          //selection_parent.innerHTML = innerHTML_to_text.replace(selection_text, `<span id='highlight_${color_picker.value}' class='highlight_ext' style='background-color:${color_picker.value}'>${selection_text}</span>`)
-
-  
-
         })       
 
         //append also for highlighter
@@ -480,4 +455,68 @@ function dragElement(elmnt) {
       document.onmouseup = null;
       document.onmousemove = null;
     }
+  }
+
+  async function create_color(storage, color_picker, my_colors_cont, color_hex){
+    let new_color_cont= document.createElement("div")
+    //classname converts automatically hex to rgb, ASSIGN THE HEX TO THE CLASSNAME
+    new_color_cont.id="new_color_cont_"+color_hex
+    new_color_cont.style.display="flex"
+    new_color_cont.style.flexDirection="row"
+    new_color_cont.style.width="30%"
+    let new_color_rem= document.createElement("button")
+    new_color_rem.innerHTML="X"
+    new_color_rem.style.backgroundColor=color_hex
+    new_color_rem.style.borderRadius="50%"
+    new_color_rem.style.height="40%"
+
+    new_color_rem.style.border="transparent"
+    new_color_rem.style.color="grey"
+    new_color_rem.style.fontSize="12px"
+    new_color_rem.style.marginLeft="-1%"
+    new_color_rem.style.marginRight="1%"
+    new_color_rem.style.width="25%"
+    //add color to storage
+    console.log("STORAGE CHECK", storage, storage.my_colors.filter(d=>d.color===color_hex).length>0 )
+    if (storage.my_colors.filter(d=>d.color===color_hex).length===0){ //add only not existing colors to storage
+      let new_storage= storage
+      let color_entry={color: color_hex}
+      new_storage.my_colors =[... new_storage.my_colors, color_entry]
+      await chrome.storage.local.set(new_storage) //CHECK IF IT IS CORRECT WHEN HOME
+      console.log("NEW COLORS STORAGE", storage)
+    }
+    //handle color removal
+    new_color_rem.addEventListener("click",async function(e){
+      let new_storage= storage
+      new_storage.my_colors=  new_storage.my_colors.filter(f=>f.color !== e.target.parentElement.id.toString().split("_").slice(-1)[0])
+      await chrome.storage.local.set(new_storage)
+      console.log(storage)
+
+      document.getElementById(e.target.parentElement.id).remove()
+
+    })
+
+    let new_color= document.createElement("input")
+    new_color.id="new_color_"+color_hex
+    new_color.type="color"
+    new_color.value= color_hex
+    new_color.style.width="80%"
+    new_color.addEventListener("click", function(e){
+      e.preventDefault()
+      color_picker.value= e.target.value
+    })
+    console.log(my_colors_cont.getElementsByTagName("*"))
+      
+     //do not add already existing color
+      for(let i=0;i<my_colors_cont.getElementsByTagName("*").length;i++){
+        if (my_colors_cont.getElementsByTagName("*").item(i).value === new_color.value){
+          return
+        }
+      }
+
+      new_color_cont.appendChild(new_color)
+      new_color_cont.appendChild(new_color_rem)
+      
+      my_colors_cont.appendChild(new_color_cont)
+    
   }

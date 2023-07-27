@@ -5,10 +5,18 @@ if(document.readyState!=="loading"){
 
     //check if there are notes for this url
     chrome.storage.local.get(async (storage)=>{
-        let note_list= storage.notes
+        let note_list
         let urls
+
         try{
-          urls= note_list.map((d)=>d.url).filter(function(f){return f!==""})
+          note_list= storage.notes
+        }catch{
+          note_list=[]
+        }
+
+                 
+        try{
+          urls= note_list.map((d)=>d.url).filter(function(f){return f!==""}) //need to fix counters, not
 
         }catch{
           urls=[]
@@ -296,6 +304,45 @@ if(document.readyState!=="loading"){
         create_notes_for_colors.style.fontSize="12px"
         create_notes_for_colors.style.textAlign="left"
 
+        create_notes_for_colors.addEventListener('click', async function(e){
+          //get all ordered highlights by colors
+          let all_highlights=document.getElementsByClassName("highlight_ext")
+          let used_colors=[]
+          for(let i=0;i<all_highlights.length;i++){
+            let color= all_highlights.item(i).id.split("_")[1]
+            console.log("COLOR", color)
+            if(!used_colors.includes(color)){
+              //used_colors.push(color)
+
+              ////for each color create a note with that color as name
+              //get text of elements of these colors
+              let filtered_highlight= document.querySelectorAll("#highlight_"+color)
+              console.log("FILT HIGH", filtered_highlight)
+              let filtered_texts=[]
+              for(let j=0; j<filtered_highlight.length;j++){
+                filtered_texts.push(filtered_highlight.item(j).textContent)
+              }
+              let filtered_text=filtered_texts.join(" ~~~ ")
+              console.log(filtered_text)
+              let new_id= storage.notes.length+1
+              let date_= new Date().toString().split("GMT")[0].trim()
+
+              let new_note= {context: 'absolute', date: date_ , id: new_id, name:`#${color}`, row_id:`abs_${new_id}`, tags:"", text: filtered_text, url: window.location.href}
+              console.log("NEW NOTE", new_note)
+              
+              let new_storage= storage
+              //make sure the same element more than once
+              //if
+              new_storage.notes= [... storage.notes.filter(f=>f.text !== filtered_text), new_note]
+              await chrome.storage.local.set(new_storage)
+
+            }
+          }
+          console.log("COLORS HIGH, ", used_colors)
+
+
+        })
+
         let my_colors_cont= document.createElement("div")
         my_colors_cont.id="my_colors_cont"
         my_colors_cont.style.display="flex"
@@ -326,60 +373,29 @@ if(document.readyState!=="loading"){
 
 
         //handles seleciton and highlighting
-        document.addEventListener("mouseup",function(e){
-          if(e.target.tagName !== "input")
-          //THIS FUNCTION IS WRONG, THINK ABOUT AN EASY WAY TO UNDERLINE TEXT AT CORRECT INDEXES
-          e.preventDefault()
-          console.log(window.getSelection())
-          let selection= window.getSelection()
-          let selection_parent = window.getSelection().anchorNode.parentElement
-          let selection_start= window.getSelection().getRangeAt(0)
-          let all_text= selection_parent.textContent
-          let selection_text=""
-          console.log("SEL START", selection_start, window.getSelection())
-          let all_els_sel= selection_start.commonAncestorContainer.nodeValue
-          console.log("ALL_ELS", all_els_sel)
-          if( selection.anchorNode === selection_start.startContainer && selection.anchorNode === selection_start.endContainer){
-            if (selection.anchorOffset < selection.focusOffset) { //NORMAL SELECTION: top down
-              selection_text=window.getSelection().anchorNode.textContent.slice(selection.anchorOffset, selection.focusOffset)
-            }else if (selection.focusOffset < selection.anchorOffset){ // REVERSE SELECTION: bottom up (invert anchor and focus otherwise it deletes the text without inserting the right selection range)
-              selection_text=window.getSelection().anchorNode.textContent.slice(selection.focusOffset, selection.anchorOffset)
-              //console.log("inverse selection not valid")    
-            }
-            let new_highlight= document.createElement("span")
-            new_highlight.id= `highlight_${color_picker.value}`
-            new_highlight.className= "highlight_ext"
-            new_highlight.style.backgroundColor=color_picker.value
-            new_highlight.innerHTML=selection_text
-            
-            selection_start.deleteContents()
-            selection_start.insertNode(new_highlight)
-          }else{
-            console.log("ERROR", selection.anchorNode, selection.extentNode, selection.focusNode, selection.containsNode)
-            return
-          }
-          console.log("POST", selection.anchorNode.getElementsByTagName("*").forEach(d=>d.textContent))
+        document.addEventListener("mouseup", async function(e){
+         await create_highlight(e, storage, color_picker)
         })       
 
-        //append also for highlighter
+          //append also for highlighter
 
-        meta_cont_highlight.appendChild(highlight_popup_toggle)
+          meta_cont_highlight.appendChild(highlight_popup_toggle)
 
-        color_picker_cont.appendChild(color_picker_label)
-        color_picker_cont.appendChild(color_picker)
-        sub_cont_highlight.appendChild(color_picker_cont)
-        
-        my_colors_add_btn_cont.appendChild(my_colors_add_btn)
-        sub_cont_highlight.appendChild(my_colors_add_btn)
-        sub_cont_highlight.appendChild(my_colors_cont)
-        
-        create_notes_for_colors_cont.appendChild(create_notes_for_colors)
-        sub_cont_highlight.appendChild(create_notes_for_colors_cont)
-        
-        meta_cont_highlight.appendChild(sub_cont_highlight)
-        document.body.insertBefore( meta_cont_highlight, document.body.firstChild)
-        
-    })
+          color_picker_cont.appendChild(color_picker_label)
+          color_picker_cont.appendChild(color_picker)
+          sub_cont_highlight.appendChild(color_picker_cont)
+          
+          my_colors_add_btn_cont.appendChild(my_colors_add_btn)
+          sub_cont_highlight.appendChild(my_colors_add_btn)
+          sub_cont_highlight.appendChild(my_colors_cont)
+          
+          create_notes_for_colors_cont.appendChild(create_notes_for_colors)
+          sub_cont_highlight.appendChild(create_notes_for_colors_cont)
+          
+          meta_cont_highlight.appendChild(sub_cont_highlight)
+          document.body.insertBefore( meta_cont_highlight, document.body.firstChild)
+          
+      })
     
 }
 
@@ -480,9 +496,9 @@ function dragElement(elmnt) {
     console.log("STORAGE CHECK", storage, storage.my_colors.filter(d=>d.color===color_hex).length>0 )
     if (storage.my_colors.filter(d=>d.color===color_hex).length===0){ //add only not existing colors to storage
       let new_storage= storage
-      let color_entry={color: color_hex}
+      let color_entry={color: color_hex, name: color_hex} //name equal to color by default, the user will change it later through an apposite input on the color entry
       new_storage.my_colors =[... new_storage.my_colors, color_entry]
-      await chrome.storage.local.set(new_storage) //CHECK IF IT IS CORRECT WHEN HOME
+      await chrome.storage.local.set(new_storage) 
       console.log("NEW COLORS STORAGE", storage)
     }
     //handle color removal
@@ -519,4 +535,67 @@ function dragElement(elmnt) {
       
       my_colors_cont.appendChild(new_color_cont)
     
+  }
+
+  async function create_highlight(e, storage, color_picker){ //change color_picker with an apposite color val arg in hex
+    if(e.target.tagName !== "input"){
+      //THIS FUNCTION IS WRONG, THINK ABOUT AN EASY WAY TO UNDERLINE TEXT AT CORRECT INDEXES
+      e.preventDefault()
+      console.log(window.getSelection())
+      let selection= window.getSelection()
+      let selection_parent = window.getSelection().anchorNode.parentElement
+      let selection_start= window.getSelection().getRangeAt(0)
+      let all_text= selection_parent.textContent
+      let selection_text=""
+      console.log("SEL START", selection_start, window.getSelection())
+      let all_els_sel= selection_start.commonAncestorContainer.nodeValue
+      console.log("ALL_ELS", all_els_sel)
+      if( selection.anchorNode === selection_start.startContainer && selection.anchorNode === selection_start.endContainer){
+        if (selection.anchorOffset < selection.focusOffset) { //NORMAL SELECTION: top down
+          selection_text=window.getSelection().anchorNode.textContent.slice(selection.anchorOffset, selection.focusOffset)
+        }else if (selection.focusOffset < selection.anchorOffset){ // REVERSE SELECTION: bottom up (invert anchor and focus otherwise it deletes the text without inserting the right selection range)
+          selection_text=window.getSelection().anchorNode.textContent.slice(selection.focusOffset, selection.anchorOffset)
+          //console.log("inverse selection not valid")    
+        }
+        let new_highlight= document.createElement("span")
+        new_highlight.id= `highlight_${color_picker.value.slice(1,)}` //without #
+        new_highlight.className= "highlight_ext"
+        new_highlight.style.backgroundColor=color_picker.value
+        new_highlight.innerHTML=selection_text
+        
+        selection_start.deleteContents()
+        selection_start.insertNode(new_highlight)
+      }else{
+        console.log("ERROR", selection.anchorNode, selection.extentNode, selection.focusNode, selection.containsNode)
+        return
+      }
+
+
+      /*  IT MAY BE TOO TEDIOUS: THE DOM STRUCTURE MAY BE COMPLICATED, MANY ELEMENTS ALONG WITH PARENTS MAY NOT HAVE REFERENCES
+      ONE WAY WOULD BE TO SERIALIZE HTML TO JSON AND PASS IT AS A VALUE IN A KEY OF THE DICT (only str in local storage)
+      BUT RETRIEVING NODES FROM SELECTION SEEMS NOT EASY (in selection, they are references)
+
+      /*  DEVELOPE THIS FEATURE IN FUTURE!
+      //update highlights in storage
+      let already_existing_highlights = storage.highlights
+      //CHANGE THIS to the needed data w.r.t. the retrieval
+      let new_highlight_dict= {url:window.location.href, anchor_text:selection.anchorNode.textContent, focus_node_text:selection.focusNode.textContent, parent_node_text: selection.anchorNode.parentElement.textContent,
+                          anchor_parent_id: selection.anchorNode.parentElement.id, anchor_id:selection.anchorNode.id,
+                           anchor_offset: selection.anchorOffset, focus_offset: selection.focusOffset,
+                            color:color_picker.value
+                          }
+      //try to save selector data instead
+
+      let new_highlights=[... already_existing_highlights, new_highlight_dict]
+
+      console.log(selection.anchorNode.parentElement.outerHTML)
+      
+      let new_storage= storage
+      new_storage.highlights= new_highlights
+      await chrome.storage.local.set(new_storage)
+      console.log("NEW STORAGE HIGHLIGHT", storage)
+      */
+
+
+    }
   }

@@ -103,6 +103,7 @@ if(document.readyState!=="loading"){
         })
 
         let highlight_popup_toggle = document.createElement("button")
+        highlight_popup_toggle.style.marginTop = "75%"
         highlight_popup_toggle.innerHTML="+ Highlighter +"
         highlight_popup_toggle.id="toggle_popup"
         highlight_popup_toggle.className="toggle_popup_active"

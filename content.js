@@ -36,6 +36,12 @@ if(document.readyState!=="loading"){
             new_storage.highlights=[]
             await chrome.storage.local.set(new_storage)
         }
+
+        if(!Object.keys(storage).includes("notes")){
+          let new_storage= storage
+            new_storage.notes=[]
+            await chrome.storage.local.set(new_storage)
+        }
         //check all url (notes on the precise url)
         if (urls.includes(curr_url)){
             console.log("precise URL in storage: ", curr_url, urls.filter(d=>d===curr_url).length)
@@ -69,7 +75,7 @@ if(document.readyState!=="loading"){
         icon_urls.style.width="80%"
 
         let title_popup_toggle=document.createElement("button")
-        title_popup_toggle.innerHTML="- Chrome notes -"
+        title_popup_toggle.innerHTML="- Notes -"
         title_popup_toggle.id="toggle_popup"
         title_popup_toggle.className="toggle_popup_active"
         title_popup_toggle.style.fontSize="12px"
@@ -87,7 +93,7 @@ if(document.readyState!=="loading"){
                 meta_cont.style.backgroundColor="rgba(255,255,255,0)"
                 meta_cont.style.height="0%"
 
-                toggle_popup.innerHTML="+ Chrome notes +"
+                title_popup_toggle.innerHTML="+ Notes +"
 
             }else{
                 //enabale
@@ -95,7 +101,7 @@ if(document.readyState!=="loading"){
                 cont.style.display="block"
                 meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
 
-                toggle_popup.innerHTML="- Chrome notes -"
+                title_popup_toggle.innerHTML="- Notes -"
                 meta_cont.style.height="12%"
 
             }
@@ -103,7 +109,6 @@ if(document.readyState!=="loading"){
         })
 
         let highlight_popup_toggle = document.createElement("button")
-        highlight_popup_toggle.style.marginTop = "75%"
         highlight_popup_toggle.innerHTML="+ Highlighter +"
         highlight_popup_toggle.id="toggle_popup"
         highlight_popup_toggle.className="toggle_popup_active"
@@ -112,6 +117,7 @@ if(document.readyState!=="loading"){
         highlight_popup_toggle.style.width="100%"
         highlight_popup_toggle.style.backgroundColor="rgba(255,0,0,1)"
         highlight_popup_toggle.style.color="white"
+        
         highlight_popup_toggle.addEventListener("click", function(){
           let meta_cont= document.getElementById("note_meta_cont_highlight")
           let cont=document.getElementById("note_sub_cont_highlight")
@@ -121,6 +127,7 @@ if(document.readyState!=="loading"){
               cont.style.display="none"
               meta_cont.style.backgroundColor="rgba(255,255,255,0)"
               meta_cont.style.height="0%"
+              meta_cont.style.height="20%"
 
               highlight_popup_toggle.innerHTML="+ Highlighter +"
 
@@ -132,7 +139,7 @@ if(document.readyState!=="loading"){
               meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
 
               highlight_popup_toggle.innerHTML="- Highlighter -"
-              meta_cont.style.height="12%"
+              meta_cont.style.height="20%"
 
           }
 
@@ -161,11 +168,11 @@ if(document.readyState!=="loading"){
         //create main and sub also for highleter
         let meta_cont_highlight= document.createElement("div")
         meta_cont_highlight.id="note_meta_cont_highlight"
-
+        meta_cont_highlight.style.top="20%"
         meta_cont_highlight.style.position="fixed"
         meta_cont_highlight.style.zIndex="999999999999"
         meta_cont_highlight.style.width="200px"
-        meta_cont_highlight.style.height="125px"
+        meta_cont_highlight.style.height="20%"
         meta_cont_highlight.style.backgroundColor="rgba(255,255,255,0)"
         meta_cont_highlight.style.color="black"
         //meta_cont.style.padding="1%"
@@ -284,6 +291,7 @@ if(document.readyState!=="loading"){
         color_picker.type="color"
         color_picker.id="color_picker"
         color_picker.style.width="20%"
+        color_picker.value="#cccc00"
 
 
         let color_picker_cont= document.createElement("div")
@@ -325,7 +333,13 @@ if(document.readyState!=="loading"){
               }
               let filtered_text=filtered_texts.join(" ~~~ ")
               console.log(filtered_text)
-              let new_id= storage.notes.length+1
+              let new_id
+              try{
+                new_id= storage.notes.length+1
+
+              }catch{
+                new_id=0
+              }
               let date_= new Date().toString().split("GMT")[0].trim()
 
               let new_note= {context: 'absolute', date: date_ , id: new_id, name:`#${color}`, row_id:`abs_${new_id}`, tags:"", text: filtered_text, url: window.location.href}
@@ -334,11 +348,17 @@ if(document.readyState!=="loading"){
               let new_storage= storage
               //make sure the same element more than once
               //if
-              new_storage.notes= [... storage.notes.filter(f=>f.text !== filtered_text), new_note]
+              try{
+                new_storage.notes= [... storage.notes.filter(f=>f.text !== filtered_text), new_note]
+
+              }catch{
+                new_storage.notes= [new_note]
+              }
               await chrome.storage.local.set(new_storage)
 
             }
           }
+          alert(`Note(s) created!`)
           console.log("COLORS HIGH, ", used_colors)
 
 
@@ -352,6 +372,9 @@ if(document.readyState!=="loading"){
         my_colors_cont.style.minWidth="100%"
         my_colors_cont.style.height="100%"
         my_colors_cont.style.border="1px solid black"
+        my_colors_cont.style.minHeight="100%"
+        my_colors_cont.style.overflow="scroll"
+
         //add already existing colors from storage to cont
         let already_existing_colors= storage.my_colors
         already_existing_colors.map(d=>{
@@ -368,15 +391,15 @@ if(document.readyState!=="loading"){
         my_colors_add_btn.innerHTML="Add to default colors"
         my_colors_add_btn.addEventListener("click",async function(){
           create_color(storage, color_picker, my_colors_cont, color_picker.value)
+        })      
+
+    
+        
+        document.querySelectorAll("*:not(input)").forEach(el=>{
+          el.addEventListener("mouseup", async function(e){
+            await create_highlight(e, storage, color_picker)
+           })     
         })
-
-      
-
-
-        //handles seleciton and highlighting
-        document.addEventListener("mouseup", async function(e){
-         await create_highlight(e, storage, color_picker)
-        })       
 
           //append also for highlighter
 
@@ -480,19 +503,26 @@ function dragElement(elmnt) {
     new_color_cont.id="new_color_cont_"+color_hex
     new_color_cont.style.display="flex"
     new_color_cont.style.flexDirection="row"
-    new_color_cont.style.width="30%"
+    new_color_cont.style.width="25%"
+    new_color_cont.style.textAlign="center"
+    
+
+
     let new_color_rem= document.createElement("button")
     new_color_rem.innerHTML="X"
     new_color_rem.style.backgroundColor=color_hex
     new_color_rem.style.borderRadius="50%"
-    new_color_rem.style.height="40%"
+    new_color_rem.style.height="30%"
 
     new_color_rem.style.border="transparent"
     new_color_rem.style.color="grey"
-    new_color_rem.style.fontSize="12px"
-    new_color_rem.style.marginLeft="-1%"
+    new_color_rem.style.fontSize="8px"
+    new_color_rem.style.marginLeft="0%"
     new_color_rem.style.marginRight="1%"
     new_color_rem.style.width="25%"
+    new_color_rem.style.padding=0
+
+    
     //add color to storage
     console.log("STORAGE CHECK", storage, storage.my_colors.filter(d=>d.color===color_hex).length>0 )
     if (storage.my_colors.filter(d=>d.color===color_hex).length===0){ //add only not existing colors to storage
@@ -511,6 +541,9 @@ function dragElement(elmnt) {
 
       document.getElementById(e.target.parentElement.id).remove()
 
+      //remove also the name input
+      document.getElementsByClassName("color_name_inp")[0].remove()
+
     })
 
     let new_color= document.createElement("input")
@@ -520,7 +553,25 @@ function dragElement(elmnt) {
     new_color.style.width="80%"
     new_color.addEventListener("click", function(e){
       e.preventDefault()
+      //set color picker
       color_picker.value= e.target.value
+      //show name
+      try{
+        document.getElementsByClassName("color_name_inp")[0].remove()
+      }catch{
+
+      }
+      let my_colors_name_inp_cont=document.createElement("div")
+      my_colors_name_inp_cont.className="color_name_inp"
+      my_colors_name_inp_cont.id="color_name_inp_"+color_hex
+      let my_colors_name_inp= document.createElement("input")
+      my_colors_name_inp.className="color_name_inp"
+      my_colors_name_inp.id="color_name_inp_"+color_hex
+      my_colors_name_inp.value= color_hex
+      my_colors_name_inp.style.fontSize= "12px"
+      my_colors_name_inp.style.height ="15px"
+      my_colors_name_inp_cont.appendChild(my_colors_name_inp)
+      document.getElementById("note_sub_cont_highlight").insertBefore(my_colors_name_inp_cont, my_colors_cont)
     })
     console.log(my_colors_cont.getElementsByTagName("*"))
       

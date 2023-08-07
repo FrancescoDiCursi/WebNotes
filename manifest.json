@@ -8,7 +8,6 @@
         "activeTab",
         "clipboardRead",
         "clipboardWrite",
-        "tabs",
         "storage"
     ],
     "web_accessible_resources": [
@@ -25,7 +24,7 @@
     }
     ,
     "action" : {
-        "default_icon":"icon.jpg",
+        "default_icon":"icons8-note-100.png",
         "default_popup":"popup.html"
     },
     "content_scripts":[
@@ -37,10 +36,10 @@
     ]
     ,
     "icons":{
-        "16":"icon.jpg",
-        "48":"icon.jpg",
-        "128":"icon.jpg"
+        "16":"icons8-note-100.png",
+        "48":"icons8-note-100.png",
+        "128":"icons8-note-100.png"
     },
-    "description": "Interacive web nodes"
+    "description": "Create notes by hand or by highlighting text on websites. Find notes easy using the filtering system. Extract tags from text."
     
 }

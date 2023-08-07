@@ -417,11 +417,11 @@ function show_note_metadata(note_metadata, note_name_, note_date, note_context){
     //not implemented atm: add arguments from show_note_metadata and create_notes OR check the storage inside show_note_metadata
     //better as arguments because it reads the storage only once.
 
-    
+
     //append els
     metadata_cont.appendChild(name_)
     metadata_cont.appendChild(date_)
-    metadata_cont.appendChild(context_)
+    //metadata_cont.appendChild(context_)
     //append to DOM
     note_metadata.appendChild(metadata_cont)
 

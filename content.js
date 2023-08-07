@@ -1,4 +1,4 @@
-if(document.readyState!=="loading"){
+window.addEventListener('load', function(){
     console.log("asdasd")
     console.log(document.URL)
     let curr_url=document.URL
@@ -42,6 +42,12 @@ if(document.readyState!=="loading"){
             new_storage.notes=[]
             await chrome.storage.local.set(new_storage)
         }
+
+        if(!Object.keys(storage).includes("toggles")){
+          let new_storage= storage
+          new_storage.toggles={}
+          await chrome.storage.local.set(new_storage)
+        }
         //check all url (notes on the precise url)
         if (urls.includes(curr_url)){
             console.log("precise URL in storage: ", curr_url, urls.filter(d=>d===curr_url).length)
@@ -75,14 +81,16 @@ if(document.readyState!=="loading"){
         icon_urls.style.width="80%"
 
         let title_popup_toggle=document.createElement("button")
-        title_popup_toggle.innerHTML="- Notes -"
         title_popup_toggle.id="toggle_popup"
-        title_popup_toggle.className="toggle_popup_active"
+       
         title_popup_toggle.style.fontSize="12px"
         title_popup_toggle.style.textAlign="center"
         title_popup_toggle.style.width="100%"
         title_popup_toggle.style.backgroundColor="rgba(255,0,0,1)"
         title_popup_toggle.style.color="white"
+        title_popup_toggle.style.cursor="move"
+
+
         title_popup_toggle.addEventListener("click", function(){
             let meta_cont= document.getElementById("note_meta_cont")
             let cont=document.getElementById("note_sub_cont")
@@ -169,7 +177,8 @@ if(document.readyState!=="loading"){
         //create main and sub also for highleter
         let meta_cont_highlight= document.createElement("div")
         meta_cont_highlight.id="note_meta_cont_highlight"
-        meta_cont_highlight.style.top="20%"
+        meta_cont_highlight.style.top="0px"
+        meta_cont_highlight.style.left="210px"
         meta_cont_highlight.style.position="fixed"
         meta_cont_highlight.style.zIndex="999999999999"
         meta_cont_highlight.style.width="200px"
@@ -224,6 +233,7 @@ if(document.readyState!=="loading"){
         button_urls.style.width="100%"
         button_urls.style.backgroundColor="transparent"
         button_urls.style.border="transparent"
+        button_urls.style.cursor="default"
         button_urls.addEventListener("click",function(){
             chrome.runtime.sendMessage({"action":"open_popup_urls"},function(response){
 
@@ -261,6 +271,7 @@ if(document.readyState!=="loading"){
         button_bases.style.width="100%"
         button_bases.style.backgroundColor="transparent"
         button_bases.style.border="transparent"
+        button_bases.style.cursor="default"
 
         //append image and counter to btn
         button_bases.appendChild(icon_bases)
@@ -420,12 +431,6 @@ if(document.readyState!=="loading"){
         })      
 
     
-        
-        document.querySelectorAll("*:not(input)").forEach(el=>{
-          el.addEventListener("mouseup", async function(e){
-            await create_highlight(e, storage, color_picker)
-           })     
-        })
 
           //append also for highlighter
 
@@ -444,10 +449,134 @@ if(document.readyState!=="loading"){
           
           meta_cont_highlight.appendChild(sub_cont_highlight)
           document.body.insertBefore( meta_cont_highlight, document.body.firstChild)
+
+          //add handler to highlighter
+          let highlight_state_cont= document.createElement("div")
+          highlight_state_cont.id="highlight_state_cont"
+          highlight_state_cont.style.display="flex"
+          highlight_state_cont.style.flexDirection="row"
+          highlight_state_cont.style.marginLeft="15%"
+          highlight_state_cont.style.marginBottom="-5%"
+          let highlighter_check_label= document.createElement("label")
+          highlighter_check_label.id="highlighter_check_label"
+          highlighter_check_label.innerHTML="Enable highlighter"
+          highlighter_check_label.style.fontSize="13px"
+          let highlighter_check_input= document.createElement("input")
+          highlighter_check_input.type="checkbox"
+          highlighter_check_input.id="highlighter_check_input"
+          highlighter_check_input.checked=false
+          highlighter_check_input.style.marginLeft="8%"
           
+          highlight_state_cont.appendChild(highlighter_check_label)
+          highlight_state_cont.appendChild(highlighter_check_input)
+
+          sub_cont_highlight.insertBefore(highlight_state_cont, sub_cont_highlight.firstChild)
+
+        //check toggle state and coords
+        if(Object.keys(storage.toggles).includes("notes")){
+          let toggle_infos= storage.toggles.notes
+          let meta_cont= document.getElementById("note_meta_cont")
+          console.log("NOTES: ",meta_cont) 
+          meta_cont.style.left= `${toggle_infos.left}px` 
+          meta_cont.style.top= `${toggle_infos.top}px`
+          console.log("NOTES MODIFIED: ",meta_cont) 
+
+        }
+        if(Object.keys(storage.toggles).includes("highlighter")){
+          let toggle_infos= storage.toggles.highlighter
+          let meta_cont= document.getElementById("note_meta_cont_highlight")
+          meta_cont.style.left= `${toggle_infos.left}px` 
+          meta_cont.style.top= `${toggle_infos.top}px`
+        }
+
+        //handle subconts
+        //notes
+        if(Object.keys(storage.toggles).includes("notes")){
+          let meta_cont= document.getElementById("note_meta_cont")
+          let cont= document.getElementById("note_sub_cont")
+          if(storage.toggles.notes.state==="opened"){
+            cont.className= cont.className+"_active"
+            cont.style.display="block"
+            meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
+
+            title_popup_toggle.innerHTML="- Notes -"
+            meta_cont.style.height="12%"
+
+          }else if(storage.toggles.notes.state==="closed"){
+            cont.className= cont.className.replace("_active","")
+            cont.style.display="none"
+            meta_cont.style.backgroundColor="rgba(255,255,255,0)"
+            meta_cont.style.height="0%"
+
+            title_popup_toggle.innerHTML="+ Notes +"
+
+          }
+        } else{ //note open by default
+          title_popup_toggle.innerHTML="- Notes -"
+          title_popup_toggle.className="toggle_popup_active"
+        }
+
+        //highlight
+        if(Object.keys(storage.toggles).includes("highlighter")){
+          let meta_cont= document.getElementById("note_meta_cont_highlight")
+          let cont=document.getElementById("note_sub_cont_highlight")
+          if(storage.toggles.highlighter.state==="opened"){
+            //enabale
+            cont.className= cont.className+"_active"
+            cont.style.display="flex"
+            cont.style.flexDirection="column"
+            meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
+            meta_cont.style.width="250px"
+            meta_cont.style.height="250px"
+
+            highlight_popup_toggle.innerHTML="- Highlighter -"
+
+          }else if(storage.toggles.highlighter.state==="closed"){
+            //disable
+            cont.className= cont.className.replace("_active","")
+            cont.style.display="none"
+            meta_cont.style.backgroundColor="rgba(255,255,255,0)"
+            meta_cont.style.height="0%"
+
+            highlight_popup_toggle.innerHTML="+ Highlighter +"
+
+          }
+        } else{ //note open by default
+          highlight_popup_toggle.innerHTML="+ Highlighter +"
+          highlight_popup_toggle.className="toggle_popup_active"
+        }
+
+        //handle highlighter
+        //it seems impossible to filter out inputs for this.
+        //the only way to write with highlighter enabled is to press the mouse button while writing
+        async function mouse_up_highlight(e){
+          await create_highlight(e, storage, color_picker)
+        }
+        
+        let highlighter_state=document.getElementById("highlighter_check_input")        
+        highlighter_state.addEventListener("click",function(){
+            console.log("HIGHLIGHTER STATE:", highlighter_state, highlighter_state.checked)
+          if(highlighter_state.checked===true){
+            alert("While the hilighter is active you will not be able to write in inputs.\nDisable the highlighter to be able to write again.")
+            document.querySelectorAll("*").forEach(el=>{
+              el.addEventListener("mouseup", mouse_up_highlight,true)
+            })
+          }else{
+            document.querySelectorAll("*").forEach(el=>{
+              el.removeEventListener("mouseup",mouse_up_highlight,true)
+            })
+          }
+        })
+
+        
+       
+
+        
+
       })
     
 }
+)
 
 function componentToHex(c) {
   var hex = c.toString(16);
@@ -600,6 +729,7 @@ function dragElement(elmnt) {
       my_colors_name_inp.value= color_hex
       my_colors_name_inp.style.fontSize= "12px"
       my_colors_name_inp.style.height ="15px"
+      my_colors_name_inp_cont.style.marginLeft="13%"
       my_colors_name_inp_cont.appendChild(my_colors_name_inp)
       document.getElementById("note_sub_cont_highlight").insertBefore(my_colors_name_inp_cont, my_colors_cont)
     })
@@ -681,3 +811,44 @@ function dragElement(elmnt) {
 
     }
   }
+
+
+  
+  chrome.runtime.onMessage.addListener(function(message, sender, sendResponse){
+    console.log("MESSAGE:", message)
+    if(message.action==="get_toggle_states"){
+        console.log("MESSAGE RECEIVED IN BG")
+
+        //get toggles and positions
+        let toggle_notes= document.querySelectorAll("#toggle_popup")[1]
+        let toggle_highlighter=document.querySelectorAll("#toggle_popup")[0] 
+        console.log("TOGGLES:", toggle_notes, toggle_highlighter)
+        let notes_rect= toggle_notes.getBoundingClientRect()
+        let highlighter_rect= toggle_highlighter.getBoundingClientRect()
+        //add toggle state
+
+        console.log("NOTE RECT", notes_rect)
+
+
+        //save them to firebase
+        chrome.storage.local.get().then(async (storage)=>{
+          console.log("STORAGE", storage)
+          let notes_rect_to_json=JSON.parse(JSON.stringify( notes_rect))
+          let highlighter_rect_to_json=JSON.parse(JSON.stringify( highlighter_rect))
+          let new_storage= storage
+          console.log("TO JSON", notes_rect_to_json, highlighter_rect_to_json)
+          notes_rect_to_json.state =  toggle_notes.innerHTML.includes("+") ?"closed" :"opened"
+          highlighter_rect_to_json.state = toggle_highlighter.innerHTML.includes("+") ?"closed" :"opened"
+          new_storage.toggles.notes= notes_rect_to_json
+          new_storage.toggles.highlighter= highlighter_rect_to_json
+
+          await chrome.storage.local.set(new_storage)
+          console.log("MODIFIED STORAGE", storage)
+        })
+
+        sendResponse({
+            response:"Message received"
+        })
+
+    }
+})

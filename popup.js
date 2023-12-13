@@ -6,6 +6,10 @@ document.addEventListener("DOMContentLoaded",function (){
         let clear_check=confirm("You will delete all notes, are you sure you want to continue?")
         if(clear_check){
             chrome.storage.local.clear()
+            chrome.tabs.query({active:true},tabs=>{
+                var activeTab=tabs[0]
+                chrome.tabs.sendMessage(activeTab.id,{message:"reset_counters"})
+            })
             window.close()
         }
     })
@@ -450,6 +454,7 @@ function save_to_local(note_name_, note_date, context, row_id){
         console.log(storage)
     
         await chrome.storage.local.set(storage)
+       
     })
 }
 
@@ -634,8 +639,16 @@ function open_text_editor(row, edit_btn, filter_toggle){
                 console.log("INSIDE")
 
                 //set
-                chrome.storage.local.set({"notes":new_notes})
+                chrome.storage.local.set({"notes":new_notes}).then(()=>{
+                    chrome.tabs.query({active:true},tabs=>{
+                        var activeTab=tabs[0]
+                        chrome.tabs.sendMessage(activeTab.id,{message:"update_counters"})
+                    })
+                })
                 active_note.getElementsByClassName("note_name").item(0).innerHTML = note_inp.value
+
+                 //update counters in content.js
+
 
                 //brute way to: reset filters and updating lists in case of filter search
                 //the right way would be to insert in the filter mode a function to change the edit_btn class name, so that it is find after that

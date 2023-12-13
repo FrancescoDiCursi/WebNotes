@@ -610,7 +610,7 @@ window.addEventListener('load', function(){
         highlighter_state.addEventListener("click",function(){
             console.log("HIGHLIGHTER STATE:", highlighter_state, highlighter_state.checked)
           if(highlighter_state.checked===true){
-            alert("While the hilighter is active you will not be able to write in inputs.\nDisable the highlighter to be able to write again.")
+            alert("While the highlighter is active you will not be able to write in inputs.\nDisable the highlighter to be able to write again.")
             document.querySelectorAll("*").forEach(el=>{
               el.addEventListener("mouseup", mouse_up_highlight,true)
             })
@@ -918,7 +918,7 @@ function delete_highlight(el){
   el.outerHTML=el.innerHTML
 }
 
-chrome.runtime.onMessage.addListener((message, sendere, sendResponse)=>{
+chrome.runtime.onMessage.addListener((message, sender, sendResponse)=>{
   if(message.message==="update_counters"){
         //update counters
         let domain_counter= document.getElementById("domains_counter")
@@ -943,5 +943,11 @@ chrome.runtime.onMessage.addListener((message, sendere, sendResponse)=>{
           url_counter.innerHTML=n_urls
         })
         
+  } else if(message.message==="reset_counters"){
+    let domain_counter= document.getElementById("domains_counter")
+    let url_counter= document.getElementById("urls_counter")
+
+    domain_counter.innerHTML="0"
+    url_counter.innerHTML="0"
   }
 })

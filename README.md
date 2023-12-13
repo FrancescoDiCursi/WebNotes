@@ -1,4 +1,4 @@
-# Chrome notes
+# WebNotes
 A Chrome extension to take notes on the web (by hand or highlighting text on websites).
 
 Find notes easly through the filtering system.

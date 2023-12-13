@@ -464,7 +464,13 @@ function del_from_local(note_name_, note_date_, context, note_id){
             }
         })
         console.log("new notes", new_notes)
-        chrome.storage.local.set({"notes":new_notes})
+        chrome.storage.local.set({"notes":new_notes}).then(
+            //update counters in content.js
+            chrome.tabs.query({active:true},tabs=>{
+                var activeTab=tabs[0]
+                chrome.tabs.sendMessage(activeTab.id,{message:"update_counters"})
+            })
+        )
     })
 }
 
@@ -661,7 +667,11 @@ function close_text_editor(){
     }
     //close editor
     let note_editor_cont= document.getElementById("note_editor_cont_active")
-    note_editor_cont.id= note_editor_cont.id.replace("_active","")
+    try{
+        note_editor_cont.id= note_editor_cont.id.replace("_active","")
+    }catch{
+        console.log("editor not opened")
+    }
 
 }
 

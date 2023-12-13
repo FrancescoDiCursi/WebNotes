@@ -134,6 +134,7 @@ window.addEventListener('load', function(){
               //disable
               cont.className= cont.className.replace("_active","")
               cont.style.display="none"
+              cont.style.visibility="hidden"
               meta_cont.style.backgroundColor="rgba(255,255,255,0)"
               meta_cont.style.height="0%"
 
@@ -143,10 +144,11 @@ window.addEventListener('load', function(){
               //enabale
               cont.className= cont.className+"_active"
               cont.style.display="flex"
+              cont.style.visibility="visible"
               cont.style.flexDirection="column"
               meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
               meta_cont.style.width="250px"
-              meta_cont.style.height="250px"
+              meta_cont.style.height="290px"
 
               highlight_popup_toggle.innerHTML="- Highlighter -"
 
@@ -255,12 +257,15 @@ window.addEventListener('load', function(){
         button_urls_counter.style.color="black"
         button_urls_counter.style.fontSize="25px"
         button_urls_counter.style.rotate="-9deg"
+        button_urls_counter.id="urls_counter"
 
         let button_bases_counter=document.createElement("div")
         button_bases_counter.innerHTML=`${n_bases}`
         button_bases_counter.style.marginTop="-60%"
         button_bases_counter.style.marginLeft="17%"
         button_bases_counter.style.rotate="-9deg"
+        button_bases_counter.id="domains_counter"
+
 
 
         button_bases_counter.style.color="black"
@@ -337,11 +342,22 @@ window.addEventListener('load', function(){
           //get all ordered highlights by colors
           let all_highlights=document.getElementsByClassName("highlight_ext")
           let used_colors=[]
+          for(let i=0;i<all_highlights.length;i++){
+            let color= all_highlights.item(i).id.split("_")[1]
+            console.log("COLOR", color)
+            if(!used_colors.includes(color)){
+              used_colors.push(color)
+            }
+          }
+          console.log("colors",used_colors)
+
           if (used_colors.length>0){
-            for(let i=0;i<all_highlights.length;i++){
-              let color= all_highlights.item(i).id.split("_")[1]
+            let new_notes_=[]
+            for(let i=0;i<used_colors.length;i++){
+              //let color= all_highlights.item(i).id.split("_")[1]
+              let color=used_colors[i]
               console.log("COLOR", color)
-              if(!used_colors.includes(color)){
+              if(true){
                 //used_colors.push(color)
   
                 ////for each color create a note with that color as name
@@ -350,10 +366,12 @@ window.addEventListener('load', function(){
                 console.log("FILT HIGH", filtered_highlight)
                 let filtered_texts=[]
                 for(let j=0; j<filtered_highlight.length;j++){
-                  filtered_texts.push(filtered_highlight.item(j).textContent)
+                  if (filtered_highlight.item(j).textContent.trim().length>0){
+                    filtered_texts.push(filtered_highlight.item(j).textContent)
+                  }
                 }
                 let filtered_text=filtered_texts.join(" ~~~ ")
-                console.log(filtered_text)
+                console.log("FILT TEXT", filtered_text)
                 let new_id
                 try{
                   new_id= storage.notes.length+1
@@ -365,22 +383,48 @@ window.addEventListener('load', function(){
   
                 let new_note= {context: 'absolute', date: date_ , id: new_id, name:`#${color}`, row_id:`abs_${new_id}`, tags:"", text: filtered_text, url: window.location.href}
                 console.log("NEW NOTE", new_note)
-                
-                let new_storage= storage
-                //make sure the same element more than once
-                //if
-                try{
-                  new_storage.notes= [... storage.notes.filter(f=>f.text !== filtered_text), new_note]
-  
-                }catch{
-                  new_storage.notes= [new_note]
-                }
-                await chrome.storage.local.set(new_storage)
+                new_notes_.push(new_note)           
   
               }
             }
 
             alert(`Note(s) created!`)
+            chrome.storage.local.get().then(async (storage_)=>{
+              let new_storage= storage_
+              //make sure the same element more than once
+              //if
+              try{
+                new_storage.notes= [... storage_.notes, ...new_notes_]
+
+              }catch{
+                console.log("NOTE ERRORS")
+                new_storage.notes= [...new_notes_]
+              }
+              await chrome.storage.local.set(new_storage)
+              //update counters
+              let domain_counter= document.getElementById("domains_counter")
+              let url_counter= document.getElementById("urls_counter")
+
+              //check only base (notes on the service)
+              let curr_url=document.URL
+              let urls = new_storage.notes.map(d=>d.url)
+              let curr_base= curr_url.match(/(http.+\.\w+)\//)[0]
+              let urls_bases= urls.map(d=>d.match(/(http.+\.\w+)\//)[0])
+              if(urls_bases.includes(curr_base)){
+                  console.log("base URL in storage", curr_base, urls_bases.filter(d=>d===curr_base).length)
+                  //add icon for base equality
+
+              }
+
+              let n_urls= urls.filter(d=>d===curr_url).length
+              let n_bases= urls_bases.filter(d=>d===curr_base).length
+
+              domain_counter.innerHTML=n_bases
+              url_counter.innerHTML=n_urls
+    
+
+              
+            })
           } else if (used_colors.length===0){
             alert("There is no highlighting on the page!")
           }
@@ -466,12 +510,21 @@ window.addEventListener('load', function(){
           highlighter_check_input.id="highlighter_check_input"
           highlighter_check_input.checked=false
           highlighter_check_input.style.marginLeft="8%"
+
+          let highlight_info_del=document.createElement("span")
+          highlight_info_del.style.fontSize="11px"
+          highlight_info_del.style.marginLeft="8%"
+          highlight_info_del.style.textDecoration="underline"
+          highlight_info_del.style.fontWeight="bolder"
+          highlight_info_del.innerHTML="Right click on highlights to delete them."
+
+          
           
           highlight_state_cont.appendChild(highlighter_check_label)
           highlight_state_cont.appendChild(highlighter_check_input)
 
           sub_cont_highlight.insertBefore(highlight_state_cont, sub_cont_highlight.firstChild)
-
+          sub_cont_highlight.insertBefore(highlight_info_del, sub_cont_highlight.firstChild)
         //check toggle state and coords
         if(Object.keys(storage.toggles).includes("notes")){
           let toggle_infos= storage.toggles.notes
@@ -527,7 +580,7 @@ window.addEventListener('load', function(){
             cont.style.flexDirection="column"
             meta_cont.style.backgroundColor="rgba(255,255,255,0.8)"
             meta_cont.style.width="250px"
-            meta_cont.style.height="250px"
+            meta_cont.style.height="290px"
 
             highlight_popup_toggle.innerHTML="- Highlighter -"
 
@@ -769,14 +822,21 @@ function dragElement(elmnt) {
           selection_text=window.getSelection().anchorNode.textContent.slice(selection.focusOffset, selection.anchorOffset)
           //console.log("inverse selection not valid")    
         }
-        let new_highlight= document.createElement("span")
-        new_highlight.id= `highlight_${color_picker.value.slice(1,)}` //without #
-        new_highlight.className= "highlight_ext"
-        new_highlight.style.backgroundColor=color_picker.value
-        new_highlight.innerHTML=selection_text
-        
-        selection_start.deleteContents()
-        selection_start.insertNode(new_highlight)
+        if(selection_text.trim().replace("~~~","").length>0){
+          let new_highlight= document.createElement("span")
+          new_highlight.id= `highlight_${color_picker.value.slice(1,)}` //without #
+          new_highlight.className= "highlight_ext"
+          new_highlight.style.backgroundColor=color_picker.value
+          new_highlight.innerHTML=selection_text
+          new_highlight.style.cursor="pointer"
+          new_highlight.style.border="solid 1px black"
+  
+          new_highlight.addEventListener("contextmenu",(el)=>{el.preventDefault();delete_highlight(el.target)})
+          
+          selection_start.deleteContents()
+          selection_start.insertNode(new_highlight)
+        }
+
       }else{
         console.log("ERROR", selection.anchorNode, selection.extentNode, selection.focusNode, selection.containsNode)
         return
@@ -851,4 +911,37 @@ function dragElement(elmnt) {
         })
 
     }
+})
+
+function delete_highlight(el){
+ 
+  el.outerHTML=el.innerHTML
+}
+
+chrome.runtime.onMessage.addListener((message, sendere, sendResponse)=>{
+  if(message.message==="update_counters"){
+        //update counters
+        let domain_counter= document.getElementById("domains_counter")
+        let url_counter= document.getElementById("urls_counter")
+
+        //check only base (notes on the service)
+        let curr_url=document.URL
+        chrome.storage.local.get().then((new_storage)=>{
+          let urls = new_storage.notes.map(d=>d.url)
+          let curr_base= curr_url.match(/(http.+\.\w+)\//)[0]
+          let urls_bases= urls.map(d=>d.match(/(http.+\.\w+)\//)[0])
+          if(urls_bases.includes(curr_base)){
+              console.log("base URL in storage", curr_base, urls_bases.filter(d=>d===curr_base).length)
+              //add icon for base equality
+  
+          }
+  
+          let n_urls= urls.filter(d=>d===curr_url).length
+          let n_bases= urls_bases.filter(d=>d===curr_base).length
+  
+          domain_counter.innerHTML=n_bases
+          url_counter.innerHTML=n_urls
+        })
+        
+  }
 })

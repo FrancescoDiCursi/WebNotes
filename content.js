@@ -296,6 +296,10 @@ window.addEventListener('load', function(){
 
         meta_cont.appendChild(sub_cont)
         document.body.insertBefore( meta_cont,document.body.firstChild)
+        this.setTimeout(()=>{
+          highlight_popup_toggle.click()
+          highlight_popup_toggle.click()
+        },1000)
 
         //create element for sub_cont_highlighter
         let color_picker_label= document.createElement("label")
